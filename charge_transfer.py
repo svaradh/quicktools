@@ -127,7 +127,7 @@ common_dft = {
     'xc': xc,
     'grid': grid_setting,
     'convergence': 'energy 1e-7',
-    'iterations': 200,
+    'iterations': 500,
 }
 
 scratch_dir = os.path.abspath('nwchem_scratch')
