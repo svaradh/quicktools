@@ -68,6 +68,10 @@ parser.add_argument(
     '--vacuum', type=float, default=6.0,
     help='Vacuum padding in angstroms (default: 6.0)'
 )
+parser.add_argument(
+    '--scf-iterations', type=int, default=500,
+    help='Maximum number of SCF iterations (default: 500)'
+)
 args = parser.parse_args()
 
 # Derive fragment 2 charge and multiplicity
@@ -127,7 +131,7 @@ common_dft = {
     'xc': xc,
     'grid': grid_setting,
     'convergence': 'energy 1e-7',
-    'iterations': 500,
+    'iterations': args.scf_iterations,
 }
 
 scratch_dir = os.path.abspath('nwchem_scratch')
