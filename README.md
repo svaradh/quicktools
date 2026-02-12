@@ -22,7 +22,8 @@ All three calculations use an identical grid (same cell and origin) so the densi
 python charge_transfer.py frag1.xyz frag2.xyz \
     --frag1-charge CHARGE --frag1-mult MULT \
     --total-charge CHARGE --total-mult MULT \
-    [--frag2-mult MULT] [-np NPROCS] [--basis BASIS] [--xc XC] [--vacuum VACUUM]
+    [--frag2-mult MULT] [-np NPROCS] [--basis BASIS] [--xc XC] [--vacuum VACUUM] \
+    [--scf-iterations ITERATIONS]
 ```
 
 **Required arguments:**
@@ -45,6 +46,7 @@ python charge_transfer.py frag1.xyz frag2.xyz \
 | `--basis` | 6-311++G** | Basis set |
 | `--xc` | B3LYP | Exchange-correlation functional |
 | `--vacuum` | 6.0 | Vacuum padding in angstroms |
+| `--scf-iterations` | 500 | Maximum number of SCF iterations |
 
 Fragment 2 charge is derived automatically as `total_charge - frag1_charge`.
 
