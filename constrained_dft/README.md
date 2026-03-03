@@ -1,10 +1,10 @@
 # quicktools
 
-A collection of computational chemistry tools built with ASE and NWChem.
+A collection of computational chemistry tools built with ASE, GPAW, and NWChem.
 
 ## Tools
 
-### charge_transfer.py
+### constrained_dft/charge_transfer.py
 
 DFT study of charge transfer between two molecular fragments using ASE + NWChem.
 
