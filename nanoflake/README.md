@@ -1,11 +1,12 @@
 # Graphene Nanoflake Generator
 
-A Python tool for generating graphene nanoflakes with customizable shapes and edge types. Supports hexagonal and triangular flakes with zigzag, armchair, or alternating edges. Outputs atomic structure files in XYZ format.
+Python tools for generating graphene nanoflakes with customizable shapes and edge types. Outputs atomic structure files in XYZ format readable by ASE, VESTA, VMD, and Avogadro.
+
+**Dependencies:** Python 3, ASE, NumPy
 
 ## Setup
 
 ```bash
-# Create and activate conda environment
 conda env create -f environment.yml
 conda activate graphene
 ```
@@ -17,15 +18,13 @@ conda create -n graphene python=3.11 -y
 pip install ase numpy
 ```
 
-**Dependencies:** Python 3, ASE (Atomic Simulation Environment), NumPy
+---
 
-## Usage
+## `graph_nanoflake.py` — Hexagonal and triangular flakes
 
 ```bash
 python Codes/graph_nanoflake.py [options]
 ```
-
-### Options
 
 | Flag | Description | Default |
 |------|-------------|---------|
@@ -37,20 +36,10 @@ python Codes/graph_nanoflake.py [options]
 | `-v`, `--visualize` | Open ASE GUI viewer | — |
 | `--output FILE` | Output file path | `graphene_flake.xyz` |
 
-### Examples
-
 ```bash
-# Hexagonal flake with zigzag edges (default)
-python Codes/graph_nanoflake.py -n 4
-
-# Triangular flake with armchair edges
-python Codes/graph_nanoflake.py -n 5 -s triangular -e armchair
-
-# Hexagonal with alternating edges, visualize
-python Codes/graph_nanoflake.py -n 4 -e alternating -v
-
-# No hydrogen passivation, custom output
-python Codes/graph_nanoflake.py -n 3 --no-saturate --output my_flake.xyz
+python Codes/graph_nanoflake.py -n 4                          # hexagonal, zigzag
+python Codes/graph_nanoflake.py -n 4 -e alternating -v        # alternating edges, visualize
+python Codes/graph_nanoflake.py -n 3 --no-saturate            # no H passivation
 ```
 
 ### Python API
@@ -58,22 +47,40 @@ python Codes/graph_nanoflake.py -n 3 --no-saturate --output my_flake.xyz
 ```python
 from Codes.graph_nanoflake import create_graphene_flake
 
-flake = create_graphene_flake(
-    n=4,
-    shape='hexagonal',
-    edge_type='zigzag',
-    saturated=True,
-    orientation='xy',
-    visualize=True
-)
+flake = create_graphene_flake(n=4, shape='hexagonal', edge_type='zigzag',
+                               saturated=True, orientation='xy', visualize=False)
 ```
 
-## Output
+---
 
-The XYZ file contains atomic coordinates readable by:
-- ASE (`ase.io.read`)
-- VMD, VESTA, Avogadro, and other molecular viewers
-- Quantum chemistry packages (VASP, Gaussian, etc. via ASE conversion)
+## `triangular.py` — Triangular zigzag flakes
+
+Generates triangular graphene nanoflakes with pure zigzag edges using a
+point-in-triangle lattice cut. Validates edge character via sublattice analysis.
+
+> **Note:** Valid zigzag triangular flakes only exist for `n` not divisible by 3
+> (n = 4, 5, 7, 8, 10, 11, …). The script reports a warning for invalid sizes.
+
+```bash
+python Codes/triangular.py [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-n`, `--size N` | Size parameter: side length = n × 2.46 Å | `6` |
+| `--truncate-corners` | Remove 1-coordinated corner C atoms | — |
+| `--saturate` | Passivate edge carbons with hydrogen | — |
+| `-v`, `--visualize` | Open ASE GUI viewer | — |
+| `--output FILE` | Output file path | `triangular_flake.xyz` |
+
+```bash
+python Codes/triangular.py -n 4                               # basic triangular flake
+python Codes/triangular.py -n 4 --truncate-corners            # clip the three corner atoms
+python Codes/triangular.py -n 4 --saturate -v                 # H-passivated, visualize
+python Codes/triangular.py -n 4 --truncate-corners --saturate # truncate then passivate
+```
+
+---
 
 ## Physical Parameters
 
@@ -81,6 +88,5 @@ The XYZ file contains atomic coordinates readable by:
 |-----------|-------|
 | C–C bond length | 1.42 Å |
 | C–H bond length | 1.09 Å |
-| Unit cell width | 2.46 Å |
-| Bond detection cutoff | 1.5 Å |
-
+| Lattice constant | 2.46 Å |
+| Bond detection cutoff | 1.6 Å |
