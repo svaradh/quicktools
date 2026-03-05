@@ -20,80 +20,73 @@ Graphene is a Python tool for generating graphene nanoflakes with customizable s
 
 ```
 Codes/
-  graph_nanoflake.py    # Main nanoflake generator
+  graph_nanoflake.py    # Hexagonal and triangular flakes (masking approach)
+  triangular.py         # Triangular zigzag flakes (lattice-cut approach)
+  hexagonal.py          # Hexagonal zigzag flakes (hexagon-tiling approach)
 ```
 
 ## Running the Code
 
 ```bash
-# Using the conda environment
-~/miniconda3/envs/graphene/bin/python Codes/graph_nanoflake.py [options]
+PYTHON=~/miniconda3/envs/graphene/bin/python
+
+# Hexagonal flake by tiling (guaranteed zigzag, preferred)
+$PYTHON Codes/hexagonal.py -n 3
+$PYTHON Codes/hexagonal.py -n 3 --saturate --output coronene.xyz
+
+# Triangular zigzag flake
+$PYTHON Codes/triangular.py -n 4 --saturate
+
+# Hexagonal/triangular via masking (legacy)
+$PYTHON Codes/graph_nanoflake.py -n 4 -s hexagonal -e zigzag
 ```
 
-**CLI options:**
-```
--n, --size N            Size parameter - atoms along edge (default: 4)
--s, --shape             hexagonal, triangular (default: hexagonal)
--e, --edge-type         zigzag, armchair, alternating (default: zigzag)
---no-saturate           Disable hydrogen saturation
--o, --orientation       Plane: xy, xz, yz (default: xy)
--v, --visualize         Open ASE GUI viewer
---output FILE           Output file (default: graphene_flake.xyz)
-```
+## Architecture
 
-**Examples:**
-```bash
-# Hexagonal flake with zigzag edges (default)
-python Codes/graph_nanoflake.py -n 4
+### `hexagonal.py` (preferred for hexagonal flakes)
 
-# Triangular flake with armchair edges
-python Codes/graph_nanoflake.py -n 5 -s triangular -e armchair
+**Key functions:** `generate_hexagonal_flake(n)`, `saturate(flake)`
 
-# Hexagonal with alternating edges, visualize
-python Codes/graph_nanoflake.py -n 4 -e alternating -v
+**Algorithm:**
+1. Hexagon centres placed on triangular lattice:
+   `v1 = (3a/2, a√3/2)`, `v2 = (0, a√3)` — these are the actual edge-sharing
+   neighbour directions for flat-top hexagons, so shared vertices are identical
+   in floating-point and deduplication via a rounded-coordinate dict is exact.
+2. Axial cube-coordinate condition `|i|≤n, |j|≤n, |i+j|≤n` selects the
+   hexagonal patch (`3n²+3n+1` hexagons).
+3. 6 vertices per hexagon at 0°, 60°, 120°, … (flat-top).
+4. Zigzag edges are structural — they follow from the hexagon tiling, not from
+   a cut alignment.
 
-# No hydrogen passivation, custom output
-python Codes/graph_nanoflake.py -n 3 --no-saturate --output my_flake.xyz
-```
+### `graph_nanoflake.py` (legacy, hexagonal + triangular)
+
+**Main function:** `create_graphene_flake(n, shape, edge_type, saturated, vacuum, orientation, visualize)`
+
+Generates a large honeycomb supercell and masks it with a shape-specific
+boundary polygon. Edge type (zigzag/armchair/alternating) controls the polygon
+orientation. Works for both hexagonal and triangular shapes.
 
 **Python import:**
 ```python
 from Codes.graph_nanoflake import create_graphene_flake
 flake = create_graphene_flake(n=4, shape='hexagonal', edge_type='zigzag',
-                               saturated=True, orientation='xy', visualize=True)
+                               saturated=True, orientation='xy')
+
+from Codes.hexagonal import generate_hexagonal_flake, saturate
+flake = saturate(generate_hexagonal_flake(n=3))
 ```
 
-## Architecture
+### `triangular.py`
 
-**Main module:** `Codes/graph_nanoflake.py`
+Lattice-cut approach for triangular zigzag flakes. Valid sizes: n not divisible
+by 3 (n = 4, 5, 7, 8, …). Reports a warning for invalid sizes.
 
-**Main function:** `create_graphene_flake(n, shape, edge_type, saturated, vacuum, orientation, visualize)`
+## Physical constants
 
-- `n`: Size parameter (atoms along each edge)
-- `shape`: `'hexagonal'` or `'triangular'`
-- `edge_type`: `'zigzag'`, `'armchair'`, or `'alternating'` (hexagonal only)
-- `saturated`: When True, passivates edge carbons with hydrogen
-- `vacuum`: Spacing around structure in Angstroms (default: 5.0)
-- `orientation`: Plane orientation - `'xy'`, `'xz'`, or `'yz'`
-- `visualize`: When True, opens structure in ASE GUI viewer
-
-**Algorithm flow:**
-1. Generates honeycomb lattice positions from unit cell vectors
-2. Applies shape-specific boundary mask (hexagon or triangle)
-3. Mask geometry depends on edge type (zigzag/armchair/alternating)
-4. Removes duplicate atoms at boundaries
-5. Optionally saturates edge carbons with H atoms
-6. Rotates to desired plane orientation
-7. Returns ASE `Atoms` object
-
-**Physical constants:**
 - C-C bond length: 1.42 Å
 - C-H bond length: 1.09 Å
-- Unit cell width: 2.46 Å (√3 × C-C bond)
-- Bond detection cutoff: 1.5 Å
-
-**Known issues:**
-- Armchair triangular flakes may need further refinement
+- Lattice constant: 2.46 Å (√3 × C-C)
+- Bond detection cutoff: 1.6 Å
 
 ## Output
 

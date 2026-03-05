@@ -82,6 +82,53 @@ python Codes/triangular.py -n 4 --truncate-corners --saturate # truncate then pa
 
 ---
 
+## `hexagonal.py` — Hexagonal zigzag flakes by hexagon tiling
+
+Generates hexagonal graphene nanoflakes by tiling flat-top benzene-ring hexagons
+outward from a central hexagon. Because the flake is built from hexagon vertices
+rather than cut from a sheet, zigzag edges are guaranteed by construction for any
+ring count. Named PAHs: n=0 → benzene, n=1 → coronene, n=2 → circumcoronene.
+
+```bash
+python Codes/hexagonal.py [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-n`, `--rings N` | Number of hexagon rings around the central hexagon | `3` |
+| `--saturate` | Passivate edge carbons with hydrogen | — |
+| `--output FILE` | Output file path | `hexagonal_flake.xyz` |
+| `-v`, `--visualize` | Open ASE GUI viewer | — |
+
+```bash
+python Codes/hexagonal.py -n 2                    # circumcoronene (54 C)
+python Codes/hexagonal.py -n 3 --saturate         # H-passivated, n=3
+python Codes/hexagonal.py -n 1 --saturate -v      # coronene, visualize
+```
+
+### Python API
+
+```python
+from Codes.hexagonal import generate_hexagonal_flake, saturate
+
+flake = generate_hexagonal_flake(n=3)        # 96 C atoms
+flake = saturate(flake)                      # adds 24 H atoms
+```
+
+### Algorithm
+
+1. Place hexagon centres on a triangular lattice with primitive vectors
+   `v1 = (3a/2, a√3/2)` and `v2 = (0, a√3)` (edge-sharing neighbour directions).
+2. Select centres satisfying the axial cube-coordinate condition
+   `|i| ≤ n`, `|j| ≤ n`, `|i+j| ≤ n` — this gives `3n² + 3n + 1` hexagons.
+3. Compute 6 vertices per hexagon at angles 0°, 60°, 120°, … (flat-top).
+4. Deduplicate via a rounded-coordinate dict (shared vertices are exact in
+   floating-point with these lattice vectors).
+5. Optionally passivate: each edge C (coordination 2) gets 1 H opposite its
+   C–C bisector; each corner C (coordination 1) gets 2 H at ±120°.
+
+---
+
 ## Physical Parameters
 
 | Parameter | Value |

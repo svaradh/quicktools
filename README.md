@@ -13,8 +13,9 @@ Generates graphene nanoflakes (hexagonal and triangular) with configurable edge 
 ```bash
 conda env create -f nanoflake/environment.yml
 conda activate graphene
-python nanoflake/Codes/graph_nanoflake.py -n 4
-python nanoflake/Codes/triangular.py -n 4 --saturate -v
+python nanoflake/Codes/hexagonal.py -n 3 --saturate   # hexagonal zigzag (tiling)
+python nanoflake/Codes/triangular.py -n 4 --saturate  # triangular zigzag
+python nanoflake/Codes/graph_nanoflake.py -n 4        # hexagonal/triangular (legacy)
 ```
 
 ### `constrained_dft/` — Constrained DFT Charge-Transfer Analysis
