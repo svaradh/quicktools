@@ -20,7 +20,10 @@ pip install ase numpy
 
 ---
 
-## `graph_nanoflake.py` — Hexagonal and triangular flakes
+## `graph_nanoflake.py` — Unified entry point (zigzag only)
+
+Dispatches to `hexagonal.py` or `triangular.py` based on `-s`. Only zigzag
+edges are produced.
 
 ```bash
 python Codes/graph_nanoflake.py [options]
@@ -28,27 +31,20 @@ python Codes/graph_nanoflake.py [options]
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-n`, `--size N` | Size parameter — atoms along each edge | `4` |
 | `-s`, `--shape` | `hexagonal` or `triangular` | `hexagonal` |
-| `-e`, `--edge-type` | `zigzag`, `armchair`, or `alternating` | `zigzag` |
-| `--no-saturate` | Disable hydrogen passivation | — |
-| `-o`, `--orientation` | Plane: `xy`, `xz`, `yz` | `xy` |
+| `-n`, `--size N` | Rings (hexagonal) or side-length units (triangular) — see below | `3` |
+| `--saturate` | Passivate edge carbons with hydrogen | — |
+| `--truncate-corners` | Triangular only: remove 1-coordinated corner C atoms | — |
+| `--output FILE` | Output file path | `hexagonal_flake.xyz` / `triangular_flake.xyz` |
 | `-v`, `--visualize` | Open ASE GUI viewer | — |
-| `--output FILE` | Output file path | `graphene_flake.xyz` |
+
+**`-n` meaning depends on shape:**
+- **Hexagonal:** number of hexagon rings (n=1 → coronene, n=2 → circumcoronene)
+- **Triangular:** side length in units of 2.46 Å; valid zigzag sizes are n not divisible by 3
 
 ```bash
-python Codes/graph_nanoflake.py -n 4                          # hexagonal, zigzag
-python Codes/graph_nanoflake.py -n 4 -e alternating -v        # alternating edges, visualize
-python Codes/graph_nanoflake.py -n 3 --no-saturate            # no H passivation
-```
-
-### Python API
-
-```python
-from Codes.graph_nanoflake import create_graphene_flake
-
-flake = create_graphene_flake(n=4, shape='hexagonal', edge_type='zigzag',
-                               saturated=True, orientation='xy', visualize=False)
+python Codes/graph_nanoflake.py -s hexagonal -n 3 --saturate
+python Codes/graph_nanoflake.py -s triangular -n 4 --truncate-corners --saturate -v
 ```
 
 ---

@@ -6,16 +6,18 @@ A collection of independent computational chemistry scripts.
 
 ### `nanoflake/` — Graphene Nanoflake Generator
 
-Generates graphene nanoflakes (hexagonal and triangular) with configurable edge types and optional hydrogen passivation. See [`nanoflake/README.md`](nanoflake/README.md) for full usage.
+Generates hexagonal and triangular graphene nanoflakes with zigzag edges and
+optional hydrogen passivation. See [`nanoflake/README.md`](nanoflake/README.md) for full usage.
+
+**Only zigzag edges are supported.**
 
 **Dependencies:** Python 3, ASE, NumPy
 
 ```bash
 conda env create -f nanoflake/environment.yml
 conda activate graphene
-python nanoflake/Codes/hexagonal.py -n 3 --saturate   # hexagonal zigzag (tiling)
-python nanoflake/Codes/triangular.py -n 4 --saturate  # triangular zigzag
-python nanoflake/Codes/graph_nanoflake.py -n 4        # hexagonal/triangular (legacy)
+python nanoflake/Codes/graph_nanoflake.py -s hexagonal -n 3 --saturate
+python nanoflake/Codes/graph_nanoflake.py -s triangular -n 4 --saturate
 ```
 
 ### `constrained_dft/` — Constrained DFT Charge-Transfer Analysis

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Graphene is a Python tool for generating graphene nanoflakes with customizable shapes and edge types. Supports hexagonal and triangular flakes with zigzag, armchair, or alternating edges. Outputs atomic structure files in XYZ format.
+Python tools for generating hexagonal and triangular graphene nanoflakes with zigzag edges. Only zigzag edges are supported. Outputs atomic structure files in XYZ format.
 
 ## Environment Setup
 
@@ -20,66 +20,65 @@ Graphene is a Python tool for generating graphene nanoflakes with customizable s
 
 ```
 Codes/
-  graph_nanoflake.py    # Hexagonal and triangular flakes (masking approach)
-  triangular.py         # Triangular zigzag flakes (lattice-cut approach)
+  graph_nanoflake.py    # Unified entry point — dispatches to hexagonal.py / triangular.py
   hexagonal.py          # Hexagonal zigzag flakes (hexagon-tiling approach)
+  triangular.py         # Triangular zigzag flakes (lattice-cut approach)
 ```
 
 ## Running the Code
 
+Only zigzag edges are produced.
+
 ```bash
 PYTHON=~/miniconda3/envs/graphene/bin/python
 
-# Hexagonal flake by tiling (guaranteed zigzag, preferred)
-$PYTHON Codes/hexagonal.py -n 3
-$PYTHON Codes/hexagonal.py -n 3 --saturate --output coronene.xyz
+# Unified entry point (recommended)
+$PYTHON Codes/graph_nanoflake.py -s hexagonal -n 3 --saturate
+$PYTHON Codes/graph_nanoflake.py -s triangular -n 4 --truncate-corners --saturate
 
-# Triangular zigzag flake
+# Backends can also be run directly
+$PYTHON Codes/hexagonal.py -n 3 --saturate
 $PYTHON Codes/triangular.py -n 4 --saturate
-
-# Hexagonal/triangular via masking (legacy)
-$PYTHON Codes/graph_nanoflake.py -n 4 -s hexagonal -e zigzag
 ```
 
 ## Architecture
 
-### `hexagonal.py` (preferred for hexagonal flakes)
+### `graph_nanoflake.py` (unified entry point)
+
+Thin CLI dispatcher. Imports from `hexagonal.py` and `triangular.py` and routes
+based on `-s`. No geometry logic of its own.
+
+**Python import:**
+```python
+from Codes.hexagonal import generate_hexagonal_flake, saturate
+flake = saturate(generate_hexagonal_flake(n=3))
+
+from Codes.triangular import generate_triangular_flake, saturate, truncate_corners
+flake = saturate(truncate_corners(generate_triangular_flake(n=4)))
+```
+
+### `hexagonal.py`
 
 **Key functions:** `generate_hexagonal_flake(n)`, `saturate(flake)`
 
 **Algorithm:**
-1. Hexagon centres placed on triangular lattice:
-   `v1 = (3a/2, a√3/2)`, `v2 = (0, a√3)` — these are the actual edge-sharing
-   neighbour directions for flat-top hexagons, so shared vertices are identical
-   in floating-point and deduplication via a rounded-coordinate dict is exact.
+1. Hexagon centres placed on triangular lattice with primitive vectors
+   `v1 = (3a/2, a√3/2)`, `v2 = (0, a√3)` — the actual edge-sharing neighbour
+   directions for flat-top hexagons, so shared vertices are identical in
+   floating-point and deduplication via a rounded-coordinate dict is exact.
 2. Axial cube-coordinate condition `|i|≤n, |j|≤n, |i+j|≤n` selects the
    hexagonal patch (`3n²+3n+1` hexagons).
 3. 6 vertices per hexagon at 0°, 60°, 120°, … (flat-top).
-4. Zigzag edges are structural — they follow from the hexagon tiling, not from
-   a cut alignment.
-
-### `graph_nanoflake.py` (legacy, hexagonal + triangular)
-
-**Main function:** `create_graphene_flake(n, shape, edge_type, saturated, vacuum, orientation, visualize)`
-
-Generates a large honeycomb supercell and masks it with a shape-specific
-boundary polygon. Edge type (zigzag/armchair/alternating) controls the polygon
-orientation. Works for both hexagonal and triangular shapes.
-
-**Python import:**
-```python
-from Codes.graph_nanoflake import create_graphene_flake
-flake = create_graphene_flake(n=4, shape='hexagonal', edge_type='zigzag',
-                               saturated=True, orientation='xy')
-
-from Codes.hexagonal import generate_hexagonal_flake, saturate
-flake = saturate(generate_hexagonal_flake(n=3))
-```
+4. Zigzag edges are structural — they follow from the hexagon tiling geometry.
 
 ### `triangular.py`
 
-Lattice-cut approach for triangular zigzag flakes. Valid sizes: n not divisible
-by 3 (n = 4, 5, 7, 8, …). Reports a warning for invalid sizes.
+**Key functions:** `generate_triangular_flake(n)`, `check_zigzag_edges(flake)`,
+`truncate_corners(flake)`, `saturate(flake)`
+
+Lattice-cut approach: builds a graphene sheet via ASE, cuts a triangular region
+using a cross-product point-in-triangle test, and validates zigzag edges via
+sublattice analysis. Valid zigzag sizes: n not divisible by 3 (n = 4, 5, 7, 8, …).
 
 ## Physical constants
 

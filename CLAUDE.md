@@ -27,21 +27,17 @@ pip install ase numpy
 ## Running the Tools
 
 ### nanoflake
+
+Only zigzag edges are produced.
+
 ```bash
 PYTHON=~/miniconda3/envs/graphene/bin/python
 
-# hexagonal.py — hexagonal zigzag flakes by hexagon tiling (preferred)
-$PYTHON nanoflake/Codes/hexagonal.py -n 3 --saturate
-# Key options: -n RINGS, --saturate, --output FILE, -v
-
-# triangular.py — triangular zigzag flakes
-$PYTHON nanoflake/Codes/triangular.py -n 4 --saturate
-# Key options: -n SIZE, --truncate-corners, --saturate, --output FILE, -v
-
-# graph_nanoflake.py — hexagonal/triangular via masking (legacy)
-$PYTHON nanoflake/Codes/graph_nanoflake.py -n 4 -s hexagonal -e zigzag
-# Key options: -n SIZE, -s hexagonal|triangular, -e zigzag|armchair|alternating,
-#              --no-saturate, -o xy|xz|yz, -v, --output FILE
+# Unified entry point
+$PYTHON nanoflake/Codes/graph_nanoflake.py -s hexagonal -n 3 --saturate
+$PYTHON nanoflake/Codes/graph_nanoflake.py -s triangular -n 4 --truncate-corners --saturate
+# Key options: -s hexagonal|triangular, -n SIZE, --saturate, --truncate-corners,
+#              --output FILE, -v
 ```
 See `nanoflake/CLAUDE.md` for full CLI reference and Python API.
 
@@ -72,16 +68,12 @@ Single-file script with no importable API. Flow:
 
 NWChem scratch files land in `nwchem_scratch/` (created automatically).
 
-### nanoflake/Codes/hexagonal.py
-
-Hexagon-tiling approach: places flat-top benzene rings outward from a central
-hexagon using axial cube coordinates, deduplicates shared vertices, and
-optionally passivates edges with H. Zigzag edges are guaranteed by construction.
-See `nanoflake/CLAUDE.md` for full details.
-
 ### nanoflake/Codes/graph_nanoflake.py
 
-Legacy masking approach. See `nanoflake/CLAUDE.md` for the full architecture description.
+Unified CLI dispatcher: routes `-s hexagonal` to `hexagonal.py` (hexagon-tiling,
+zigzag by construction) and `-s triangular` to `triangular.py` (lattice-cut,
+zigzag validated). Only zigzag edges are produced.
+See `nanoflake/CLAUDE.md` for full architecture details.
 
 ## Output Files
 
